@@ -1,12 +1,10 @@
 package Pratick.urlShortener.controllers;
 
 import Pratick.urlShortener.dto.Url;
-import Pratick.urlShortener.repositories.UrlRepository;
 import Pratick.urlShortener.services.UrlService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;

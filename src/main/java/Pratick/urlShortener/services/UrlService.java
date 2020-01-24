@@ -7,6 +7,7 @@ import Pratick.urlShortener.transformers.UrlTransformer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
@@ -22,56 +23,16 @@ public class UrlService {
     @Autowired
     UrlRepository urlRepository;
 
-    private static Set<Long> set = new HashSet<>();
-
     public String createUrl(Url url) {
 
         if(isNull(urlRepository.findByOriginalUrl(url.getOriginalUrl()))) {
 
             UrlEntity urlEntity = urlTransformer.transformUrlToEntity(url);
-            urlEntity.setShortenedUrl(generateShortUrl());
+            urlEntity.setShortenedUrl(ShorteningService.generateShortUrl());
             urlRepository.save(urlEntity);
             return urlEntity.getShortenedUrl();
         }
         return urlRepository.findByOriginalUrl(url.getOriginalUrl()).getShortenedUrl();
-    }
-
-    private static String generateStringFromNumber(Long number) {
-
-        StringBuilder stringBuilder = new StringBuilder();
-        while (number > 0) {
-            Long remainder = number % 26;
-            if (remainder == 0) {
-                stringBuilder.append("z");
-                number = (number / 26) - 1;
-            }
-            else {
-                stringBuilder.append((char)((remainder - 1) + 'a'));
-                number = number / 26;
-            }
-        }
-        return stringBuilder.reverse().toString();
-    }
-
-    private static Long generateNumberFromString(String shortUrl){
-
-        Long stringNumber = 0L;
-        for (int i = 0; i < shortUrl.length(); i++) {
-            stringNumber *= 26;
-            stringNumber += shortUrl.charAt(i) - 'a' + 1;
-        }
-        return stringNumber;
-    }
-
-    private String generateShortUrl(){
-
-        while(true){
-            Long randomNumber = ThreadLocalRandom.current().nextLong(1,10000001);
-            if(!set.contains(randomNumber)){
-                set.add(randomNumber);
-                return generateStringFromNumber(randomNumber) + ".ly";
-            }
-        }
     }
 
     public String getOriginalUrl(String shortUrl) {
@@ -79,8 +40,7 @@ public class UrlService {
         if(isNull(urlRepository.findByShortenedUrl(shortUrl)))
             return "Not found in DB";
 
-        UrlEntity urlEntity = urlRepository.findByShortenedUrl(shortUrl);
-        return urlEntity.getOriginalUrl();
+        return urlRepository.findByShortenedUrl(shortUrl).getOriginalUrl();
     }
 
     public String deleteUrl(String url){
@@ -96,9 +56,7 @@ public class UrlService {
             urlEntity = urlRepository.findByOriginalUrl(url);
         }
         String shortUrl = urlEntity.getShortenedUrl().substring( 0 , urlEntity.getShortenedUrl().length()-3 );
-        Long stringNumber = generateNumberFromString(shortUrl);
-        System.out.println("removed " + stringNumber);
-        set.remove(stringNumber);
+        ShorteningService.deleteShortUrl(shortUrl);
         urlRepository.delete(urlEntity);
         return url + " is deleted";
     }

@@ -36,13 +36,11 @@ public class UrlEntity {
     private String shortenedUrl;
 
     @Builder
-    public UrlEntity(Long id, Timestamp createdAt, Timestamp modifiedAt, String originalUrl, String shortenedUrl){
+    public UrlEntity(Long id, Timestamp createdAt, Timestamp modifiedAt,String originalUrl, String shortenedUrl){
         this.id=id;
         this.createdAt=createdAt;
         this.modifiedAt=modifiedAt;
         this.originalUrl=originalUrl;
         this.shortenedUrl=shortenedUrl;
     }
-
-
 }

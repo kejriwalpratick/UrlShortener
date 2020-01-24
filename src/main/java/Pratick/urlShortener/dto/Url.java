@@ -3,7 +3,6 @@ package Pratick.urlShortener.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
-
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 import java.sql.Timestamp;
