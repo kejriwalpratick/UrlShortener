@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to URL Shortener</title>
+</head>
+<body>
+    <div>
+        <p>Welcome to Url Shortener</p>
+    </div>
+    <div>
+        <input type="text" placeholder="Enter the url" id="UrlInput">
+        <br/>
+        <br/>
+    </div>
+    <div>
+        <button type="button" id="Create">Create</button>
+        <button type="button" id="Get">Get</button>
+        <button type="button" id="Delete">Delete</button>
+    </div>
+    <br/>
+    <div class="result"></div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script>
+        $("#Get").click(function(e) {
+            e.preventDefault();
+            var shortUrl = $("#UrlInput").val();
+            if (shortUrl.length == 0) {
+                $(".status").text("Enter a valid short URL");
+                return;
+            }
+            console.log("logged "+shortUrl);
+            $.ajax({
+                url: 'http://localhost:8080/url-shortener/get-original-url/'+shortUrl,
+                type: 'GET',
+            }).then(function(res) {
+                $(".result").text(res);})
+        })
+
+        $("#Create").click(function(e) {
+            e.preventDefault();
+            var raw = $("#UrlInput").val();
+            var obj = {originalUrl : raw};
+            console.log(obj);
+            var expression = /[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)?/gi;
+            var regex = new RegExp(expression);
+            if(raw.match(regex))
+            {
+                $.ajax({
+                    url: 'http://localhost:8080/url-shortener',
+                    type: 'POST',
+                    data : JSON.stringify(obj),
+                    headers : {
+                        "Content-type" : "application/json",
+                        'Access-Control-Allow-Origin': '*',
+                        "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS"
+                        },
+                    success : function(res) {
+                        console.log(res);
+                        $(".result").html("<a target='_blank' href='"+"url-shortener/"+res+"'>"+ res +"</a>");
+                    }
+                })
+            }
+            else {
+                $(".result").html("<h3>Enter a valid url <h3>");
+            }
+        })
+
+        $("#Delete").click(function(e) {
+            e.preventDefault();
+            var raw = $("#UrlInput").val();
+            $.ajax({
+                url: 'http://localhost:8080/url-shortener/delete-url/' + raw,
+                type: 'DELETE',
+                success: function (res) {
+                    $(".result").text(res);
+                },
+                error: function (error) {
+                    $(".result").text("Some error occurred");
+                }
+            });
+        })
+    </script>
+</body>
+</html>
