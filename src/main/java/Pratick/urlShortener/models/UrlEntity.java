@@ -24,8 +24,8 @@ public class UrlEntity {
     @Column(name = "created_at", nullable = false)
     private Timestamp createdAt;
 
-    @UpdateTimestamp
     @Column(name = "modified_at", nullable = false)
+    @Setter
     private Timestamp modifiedAt;
 
     @Column(name = "original_url", nullable = false, unique = true)

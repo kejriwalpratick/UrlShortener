@@ -1,14 +1,17 @@
 package Pratick.urlShortener.services;
 
+import org.springframework.stereotype.Service;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
+@Service
 public class ShorteningService {
 
-    private static Set<Long> set = new HashSet<>();
+    private Set<Long> set = new HashSet<>();
 
-    private static String generateStringFromNumber(Long number) {
+    private String generateStringFromNumber(Long number) {
 
         StringBuilder stringBuilder = new StringBuilder();
         while (number > 0) {
@@ -25,7 +28,7 @@ public class ShorteningService {
         return stringBuilder.reverse().toString();
     }
 
-    private static Long generateNumberFromString(String shortUrl){
+    private Long generateNumberFromString(String shortUrl){
 
         Long stringNumber = 0L;
         for (int i = 0; i < shortUrl.length(); i++) {
@@ -35,7 +38,7 @@ public class ShorteningService {
         return stringNumber;
     }
 
-    public static String generateShortUrl(){
+    public String generateShortUrl(){
 
         while(true){
             Long randomNumber = ThreadLocalRandom.current().nextLong(1,10000001);
@@ -46,7 +49,7 @@ public class ShorteningService {
         }
     }
 
-    public static void deleteShortUrl(String shortUrl) {
+    public void deleteShortUrl(String shortUrl) {
 
         Long stringNumber = generateNumberFromString(shortUrl);
         System.out.println("removed " + stringNumber);

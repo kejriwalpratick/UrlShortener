@@ -8,4 +8,6 @@ public interface UrlRepository extends JpaRepository<UrlEntity,Long> {
     UrlEntity findByOriginalUrl(String originalUrl);
 
     UrlEntity findByShortenedUrl(String shortUrl);
+
+    UrlEntity findFirstByOrderByModifiedAtAsc();
 }

@@ -5,6 +5,7 @@ import Pratick.urlShortener.models.UrlEntity;
 import Pratick.urlShortener.repositories.UrlRepository;
 import Pratick.urlShortener.transformers.UrlTransformer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -22,17 +23,31 @@ public class UrlService {
     UrlTransformer urlTransformer;
     @Autowired
     UrlRepository urlRepository;
+    @Autowired
+    ShorteningService shorteningService;
+    @Autowired
+    PergeOldUrls pergeOldUrls;
+
+    private final Long MAX_COUNT = 10000000L;
 
     public String createUrl(Url url) {
 
         if(isNull(urlRepository.findByOriginalUrl(url.getOriginalUrl()))) {
 
+            if(urlRepository.count() == MAX_COUNT) {
+
+                pergeOldUrls.pergeOldest();
+            }
             UrlEntity urlEntity = urlTransformer.transformUrlToEntity(url);
-            urlEntity.setShortenedUrl(ShorteningService.generateShortUrl());
+            urlEntity.setShortenedUrl(shorteningService.generateShortUrl());
+            urlEntity.setModifiedAt(new Timestamp(System.currentTimeMillis()));
             urlRepository.save(urlEntity);
             return urlEntity.getShortenedUrl();
         }
-        return urlRepository.findByOriginalUrl(url.getOriginalUrl()).getShortenedUrl();
+        UrlEntity urlEntity = urlRepository.findByOriginalUrl(url.getOriginalUrl());
+        urlEntity.setModifiedAt(new Timestamp(System.currentTimeMillis()));
+        urlRepository.save(urlEntity);
+        return  urlEntity.getShortenedUrl();
     }
 
     public String getOriginalUrl(String shortUrl) {
@@ -40,7 +55,10 @@ public class UrlService {
         if(isNull(urlRepository.findByShortenedUrl(shortUrl)))
             return "Not found in DB";
 
-        return urlRepository.findByShortenedUrl(shortUrl).getOriginalUrl();
+        UrlEntity urlEntity = urlRepository.findByShortenedUrl(shortUrl);
+        urlEntity.setModifiedAt(new Timestamp(System.currentTimeMillis()));
+        urlRepository.save(urlEntity);
+        return urlEntity.getOriginalUrl();
     }
 
     public String deleteUrl(String url){
@@ -56,7 +74,7 @@ public class UrlService {
             urlEntity = urlRepository.findByOriginalUrl(url);
         }
         String shortUrl = urlEntity.getShortenedUrl().substring( 0 , urlEntity.getShortenedUrl().length()-3 );
-        ShorteningService.deleteShortUrl(shortUrl);
+        shorteningService.deleteShortUrl(shortUrl);
         urlRepository.delete(urlEntity);
         return url + " is deleted";
     }
@@ -67,5 +85,10 @@ public class UrlService {
         String originalUrl = urlEntity.getOriginalUrl();
         String redirectUrl = "https://" + originalUrl;
         return redirectUrl;
+    }
+
+    @Scheduled(cron = "0 0 0 * * ?")
+    private void pergeOldUrls(){
+        pergeOldUrls.pergeThirtyDaysOldUrls();
     }
 }
